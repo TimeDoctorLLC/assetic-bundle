@@ -62,9 +62,11 @@ class WatchCommand extends AbstractCommand
         $error = '';
         while (true) {
             try {
+                $changed = false;
                 foreach ($this->am->getNames() as $name) {
                     if ($this->checkAsset($name, $previously)) {
                         $this->dumpAsset($name, $stdout);
+                        $changed = true;
                     }
                 }
 
@@ -73,6 +75,11 @@ class WatchCommand extends AbstractCommand
                 $this->am->load();
 
                 file_put_contents($cache, serialize($previously));
+                if ($changed) {
+                    $stdout->writeln('Completed the dump, waiting for changes in: '.$input->getOption('period')." second");
+                } else {
+                    $stdout->writeln('No changes found, waiting for changes in: '.$input->getOption('period')." second");
+                }
                 $error = '';
             } catch (\Exception $e) {
                 if ($error != $msg = $e->getMessage()) {
